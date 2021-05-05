@@ -16,22 +16,28 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Node.js version
+    - name: 'Set up Node.js version'
       uses: actions/setup-node@v1
       with:
         node-version: '14.x'
 
-    - name: npm install, build, and test
+    - name: 'npm install, build, and test'
       run: |
         npm install
         npm run build --if-present
         npm run test --if-present
 
-    - name: Upload artifact for deployment job
+    - name: 'Tar files'
+      run: tar -cvf node_app.tar .
+
+    - name: 'Display structure of uploading files'
+      run: ls -R
+
+    - name: 'Upload artifact for deployment job'
       uses: actions/upload-artifact@v2
       with:
         name: node-app
-        path: .
+        path: node_app.tar
 
   deploy:
     runs-on: ubuntu-latest
@@ -41,11 +47,13 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-    - name: Download artifact from build job
+    - name: 'Download artifact from build job'
       uses: actions/download-artifact@v2
       with:
         name: node-app
 
+    - name: 'Display structure of downloaded files'
+      run: ls -R
     - name: 'Deploy to Azure Web App'
       id: deploy-to-webapp
       uses: azure/webapps-deploy@v2

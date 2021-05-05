@@ -34,12 +34,12 @@ export default {
   data() {
     return {
       isEditing: false,
-      newTodoDescription: ""
+      newTodoDescription: '',
     };
   },
   props: {
     description: String,
-    completed: Boolean
+    completed: Boolean,
   },
   methods: {
     startEditing() {
@@ -53,9 +53,9 @@ export default {
     },
     finishEditing() {
       this.isEditing = false;
-      this.$emit("on-edit", this.newTodoDescription);
-    }
-  }
+      this.$emit('on-edit', this.newTodoDescription);
+    },
+  },
 };
 </script>
 

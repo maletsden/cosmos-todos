@@ -128,7 +128,7 @@ jobs:
       - name: Archive Application
         uses: montudor/action-zip@v0.1.0
         with:
-          args: zip -qq -r ./buildartifacts/application.zip ./application
+          args: zip -qq -r ./buildartifacts/application.zip .
       # Uploading application to build artifact
       - name: Upload Application to Build Artifact
         continue-on-error: false

@@ -100,7 +100,7 @@ env:
 
 jobs:
   build:
-    name: Build and Test Node App
+    name: Build Node App
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -114,12 +114,6 @@ jobs:
           npm install
           npm run build --if-present
           npm run test --if-present
-      - name: Run unit tests
-        continue-on-error: false
-        run: |
-          cd tests
-          npm install
-          gulp unittest
       - name: Creating artifact directories
         run: |
           mkdir buildartifacts

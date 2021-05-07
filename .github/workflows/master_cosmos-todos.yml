@@ -4,10 +4,7 @@
 name: Build and deploy Node.js app to Azure Web App - ${{ env.AZURE_WEBAPP_NAME }}
 
 on:
-  push:
-    branches:
-      - master
-  workflow_dispatch:
+  [push]
 
 #jobs:
 #  build:

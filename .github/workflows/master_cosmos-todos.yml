@@ -4,8 +4,9 @@
 name: Build and deploy Node.js app to Azure Web App - todos-app
 
 on:
-  [push]
-
+  push:
+    branches:
+      - master
 #jobs:
 #  build:
 #    runs-on: ubuntu-latest
@@ -63,10 +64,43 @@ env:
   AZURE_WEBAPP_NAME: cosmos-todos    # set this to your application's name
   AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
   NODE_VERSION: '14.x'                # set this to the node version to use
+#
+#jobs:
+#  build-and-deploy:
+#    name: Build and Deploy
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@master
+#      - name: Use Node.js ${{ env.NODE_VERSION }}
+#        uses: actions/setup-node@v1
+#        with:
+#          node-version: ${{ env.NODE_VERSION }}
+#      - name: npm install, build, and test
+#        run: |
+#          # Build and test the project, then
+#          # deploy to Azure Web App.
+#          npm install
+#          npm run build --if-present
+#          npm run test --if-present
+#      - name: 'Deploy to Azure WebApp'
+#        id: deploy-to-webapp
+#        uses: azure/webapps-deploy@v2
+#        with:
+#          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+#          slot-name: 'production'
+#          publish-profile: ${{ secrets.AzureAppService_PublishProfile_d1f872f2bc25403bb25ab17231fa6d7f }}
+#          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+#
+
+
+#env:
+#  AZURE_WEBAPP_NAME: node-gh-accelerator   # set this to your application's name
+#  AZURE_WEBAPP_PACKAGE_PATH: "application"      # set this to the path to your web app project, defaults to the repository root
+#  NODE_VERSION: '10.x'                # set this to the node version to use
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy
+  build:
+    name: Build and Test Node App
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -74,13 +108,53 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ env.NODE_VERSION }}
+      # Build and test the project
       - name: npm install, build, and test
         run: |
-          # Build and test the project, then
-          # deploy to Azure Web App.
+          cd application
           npm install
           npm run build --if-present
           npm run test --if-present
+      - name: Run unit tests
+        continue-on-error: false
+        run: |
+          cd tests
+          npm install
+          gulp unittest
+      - name: Creating artifact directories
+        run: |
+          mkdir buildartifacts
+      # Archive build artifact
+      - name: Archive Application
+        uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r ./buildartifacts/application.zip ./application
+      # Uploading application to build artifact
+      - name: Upload Application to Build Artifact
+        continue-on-error: false
+        uses: actions/upload-artifact@v2
+        with:
+          name: buildartifacts
+          path: buildartifacts
+  deploy:
+    name: Deploy to azure web app
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # Downloading build artifact
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v2
+        continue-on-error: false
+        with:
+          name: buildartifacts
+          path: buildartifacts
+      # Uzipping build artifacts
+      - name: unzipping build artifact
+        uses: montudor/action-zip@v0.1.0
+        with:
+          args: unzip -qq ./buildartifacts/application.zip -d .
+
+      # Deploy Node app to Azure
       - name: 'Deploy to Azure WebApp'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
